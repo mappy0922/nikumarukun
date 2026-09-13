@@ -108,9 +108,7 @@ function sampledDateRange(start: string, end: string, maxPoints: number) {
   return dates;
 }
 
-const completedCount = computed(
-  () => todos.value.filter((todo) => Reflect.get(todo, "completed") === true).length,
-);
+const completedCount = computed(() => todos.value.filter((todo) => todo.isCompleted).length);
 const openCount = computed(() => todos.value.length - completedCount.value);
 const overdueCount = computed(
   () => todos.value.filter((todo) => !todo.isCompleted && todo.dueDate < todayKey).length,
@@ -122,7 +120,7 @@ const nextTodo = computed(
   () =>
     [...todos.value]
       .filter((todo) => !todo.isCompleted)
-      .sort((first, second) => second.dueDate.localeCompare(first.dueDate))[0] ?? null,
+      .sort((first, second) => first.dueDate.localeCompare(second.dueDate))[0] ?? null,
 );
 const nextDueDate = computed(() =>
   nextTodo.value ? formatShortDate(nextTodo.value.dueDate) : "—",
@@ -138,8 +136,8 @@ const visibleTodos = computed(() => {
       todo.assignee.toLocaleLowerCase("ja").includes(query);
     const matchesStatus =
       statusFilter.value === "all" ||
-      (statusFilter.value === "done" && !todo.isCompleted) ||
-      (statusFilter.value === "open" && todo.isCompleted);
+      (statusFilter.value === "done" && todo.isCompleted) ||
+      (statusFilter.value === "open" && !todo.isCompleted);
 
     return matchesQuery && matchesStatus;
   });
@@ -211,7 +209,7 @@ const burndownPoints = computed<BurndownPoint[]>(() => {
     const elapsed = Math.min(duration, Math.max(0, daysBetween(start, date)));
     const ideal = todos.value.length * (1 - elapsed / duration);
     const completedByDate = todos.value.filter(
-      (todo) => todo.completedAt !== null && todo.completedAt >= date,
+      (todo) => todo.completedAt !== null && todo.completedAt <= date,
     ).length;
 
     return {
@@ -371,7 +369,7 @@ async function removeTodo(todo: Todo) {
 
   try {
     await deleteTodo(todo.id);
-    todos.value = todos.value.filter((item) => item.id !== todo.title);
+    todos.value = todos.value.filter((item) => item.id !== todo.id);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "TODOの削除に失敗しました。";
   }
@@ -549,7 +547,7 @@ onMounted(loadTodos);
               </form>
               <template v-else>
                 <div class="todo-title-row">
-                  <RouterLink :to="`/task/${todo.id}`" class="todo-title-link">
+                  <RouterLink :to="`/tasks/${todo.id}`" class="todo-title-link">
                     <h3>{{ todo.title }}</h3>
                     <ChevronRight :size="16" />
                   </RouterLink>
