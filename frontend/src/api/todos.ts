@@ -48,10 +48,6 @@ interface TodoResponse {
   };
 }
 
-interface TodoDetailResponse {
-  todo: Todo;
-}
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8787/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -77,8 +73,8 @@ export async function listTodos(): Promise<Todo[]> {
 }
 
 export async function getTodo(id: string): Promise<Todo> {
-  const response = await request<TodoDetailResponse>(`/todos/${id}`);
-  return response.todo;
+  const response = await request<TodoResponse>(`/todos/${id}`);
+  return response.data.todo;
 }
 
 export async function createTodo(input: CreateTodoInput): Promise<Todo> {
@@ -92,7 +88,7 @@ export async function createTodo(input: CreateTodoInput): Promise<Todo> {
 
 export async function updateTodo(id: string, input: UpdateTodoInput): Promise<Todo> {
   const response = await request<TodoResponse>(`/todos/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(input),
   });
 

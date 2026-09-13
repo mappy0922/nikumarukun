@@ -51,6 +51,17 @@ describe("TODO API", () => {
     expect(updateBody.data.todo.isCompleted).toBe(true);
     expect(updateBody.data.todo.completedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
+    const uncheckResponse = await app.request(`/api/todos/${createdId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isCompleted: false }),
+    });
+    const uncheckBody = await uncheckResponse.json();
+
+    expect(uncheckResponse.status).toBe(200);
+    expect(uncheckBody.data.todo.isCompleted).toBe(false);
+    expect(uncheckBody.data.todo.completedAt).toBeNull();
+
     const deleteResponse = await app.request(`/api/todos/${createdId}`, {
       method: "DELETE",
     });
